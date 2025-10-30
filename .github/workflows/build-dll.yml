@@ -24,10 +24,12 @@ jobs:
         run: dotnet restore HelloLib/HelloLib.csproj
 
       - name: Build (Release)
-        run: dotnet build HelloLib/HelloLib.csproj --configuration Release --no-restore
+        working-directory: HelloLib
+        run: dotnet build --configuration Release --no-restore
 
       - name: Publish output (to folder ./output)
-        run: dotnet publish HelloLib/HelloLib.csproj --configuration Release --no-build --output ./output
+        working-directory: HelloLib
+        run: dotnet publish --configuration Release --no-build --output ../output
 
       - name: List output files
         run: dir ./output

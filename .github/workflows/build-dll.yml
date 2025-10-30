@@ -18,18 +18,23 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      # Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore ./HelloLib/HelloLib.csproj
+        run: dotnet restore HelloLib/HelloLib.csproj
 
+      # Build in Release mode
       - name: Build (Release)
-        run: dotnet build ./HelloLib/HelloLib.csproj --configuration Release --no-restore
+        run: dotnet build HelloLib/HelloLib.csproj --configuration Release --no-restore
 
+      # Publish DLL to output folder
       - name: Publish DLL
-        run: dotnet publish ./HelloLib/HelloLib.csproj --configuration Release --no-build --output ./output
+        run: dotnet publish HelloLib/HelloLib.csproj --configuration Release --no-build --output ./output
 
+      # List all output files
       - name: List output files
         run: ls -R ./output
 
+      # Upload the DLL as an artifact
       - name: Upload artifact (DLL)
         uses: actions/upload-artifact@v4
         with:

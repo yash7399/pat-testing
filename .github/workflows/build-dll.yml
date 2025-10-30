@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-upload:
     # Use Windows runner so you get .NET SDK and typical Windows behavior for DLLs.
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository

@@ -1,13 +1,15 @@
-name: Build and Upload DLL
+name: Build DLL on push to main
 
+# Trigger when someone pushes to main branch
 on:
   push:
     branches:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-and-upload:
+    # Use Windows runner so you get .NET SDK and typical Windows behavior for DLLs.
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
@@ -16,27 +18,22 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: '8.0.x'   # change to '7.0.x' if you want net7.0
 
-      # Restore dependencies
-      - name: Restore dependencies
+      - name: Restore (if any)
         run: dotnet restore HelloLib/HelloLib.csproj
 
-      # Build in Release mode
       - name: Build (Release)
         run: dotnet build HelloLib/HelloLib.csproj --configuration Release --no-restore
 
-      # Publish DLL to output folder
-      - name: Publish DLL
+      - name: Publish output (to folder ./output)
         run: dotnet publish HelloLib/HelloLib.csproj --configuration Release --no-build --output ./output
 
-      # List all output files
       - name: List output files
-        run: ls -R ./output
+        run: dir ./output
 
-      # Upload the DLL as an artifact
-      - name: Upload artifact (DLL)
+      - name: Upload artifact (the DLL and related files)
         uses: actions/upload-artifact@v4
         with:
-          name: HelloLib-DLL
-          path: ./output/**/*.dll
+          name: hello-dll-artifact
+          path: ./output

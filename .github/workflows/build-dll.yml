@@ -3,54 +3,57 @@ name: Build and Push DLL
 on:
   push:
     branches:
-      - main   # Runs whenever something is pushed to main
+      - main   # Run this workflow whenever you push to main
 
-# 👇 This line is CRUCIAL — allows the workflow to push commits/branches
 permissions:
-  contents: write
+  contents: write   # Allow workflow to push commits/branches
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout your code
+      # Step 1 — Get your repo code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup .NET SDK (adjust version if needed)
-      - name: Setup .NET SDK
+      # Step 2 — Setup .NET SDK
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 8.0.x  # adjust if you’re using another version
 
-      # 3️⃣ Restore project dependencies
+      # Step 3 — Restore dependencies (even if none, safe to include)
       - name: Restore dependencies
-        run: dotnet restore HelloLib/HelloLib.csproj
+        run: dotnet restore
 
-      # 4️⃣ Build the project in Release mode
+      # Step 4 — Build your project (change HelloLib.csproj if needed)
       - name: Build project
-        run: dotnet build HelloLib/HelloLib.csproj --configuration Release --no-restore
+        run: dotnet build --configuration Release
 
-      # 5️⃣ Copy the DLL to the repo root (so it’s easy to find)
-      - name: Copy DLL to root
-        run: cp HelloLib/bin/Release/net8.0/HelloLib.dll .
-
-      # 6️⃣ Commit the DLL and push to a separate branch
-      - name: Commit DLL to repo (dll-artifacts branch)
+      # Step 5 — Commit DLL to dll-artifacts branch
+      - name: Commit DLL to repo
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
 
-          # Fetch and create/overwrite dll-artifacts branch
-          git fetch origin
-          git checkout -B dll-artifacts
-
-          # Add the DLL file
+          # Fetch dll-artifacts branch if it exists
+          git fetch origin dll-artifacts || true
+          
+          # Checkout existing branch or create a new one
+          if git show-ref --verify --quiet refs/remotes/origin/dll-artifacts; then
+            git checkout dll-artifacts
+            git pull origin dll-artifacts
+          else
+            git checkout -b dll-artifacts
+          fi
+          
+          # Copy built DLL to repo root
+          cp HelloLib/bin/Release/net8.0/HelloLib.dll .
+          
+          # Commit new DLL
           git add HelloLib.dll
+          git commit -m "Update DLL from latest build" || echo "No changes to commit"
 
-          # Commit changes only if new DLL is generated
-          git commit -m "Add latest DLL from build [skip ci]" || echo "No changes to commit"
-
-          # Push to remote dll-artifacts branch
+          # Push changes (overwrite old DLL if needed)
           git push origin dll-artifacts --force
